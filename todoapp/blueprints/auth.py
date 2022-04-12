@@ -1,18 +1,19 @@
-from flask import request, jsonify, make_response
+from flask import Blueprint, request, jsonify, make_response
 
 from werkzeug.security import check_password_hash
 
 from functools import wraps
 import jwt, datetime
 
-from .. import app
 from ..models import User
 
-SECRET = app.config['SECRET_KEY']
+SECRET = 'thisisasupersecretkey'
 
 TOKEN_KEY_HASH = 'hash'
 
-@app.route('/login', methods=['GET'])
+_ = Blueprint('auth', __name__, url_prefix='/auth')
+
+@_.route('/login', methods=['GET'])
 def login():
     auth = request.authorization
 

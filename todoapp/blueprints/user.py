@@ -1,13 +1,15 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 
 from werkzeug.security import generate_password_hash
 from uuid import uuid4
 
-from .. import app, db
+from .. import db
 from ..models import User
 from .auth import token_required, admin_required
 
-@app.route('/user', methods=['GET'])
+_ = Blueprint('user', __name__, url_prefix='/user')
+
+@_.route('', methods=['GET'])
 @token_required
 def get_all_users(_):
     try:
@@ -17,7 +19,7 @@ def get_all_users(_):
         } for user in User.query.all()])
     except: return jsonify({'message': 'failed to get all users'}), 500
 
-@app.route('/user/<hash>', methods=['GET'])
+@_.route('/<hash>', methods=['GET'])
 @token_required
 def get_one_user(current_user, hash):
     if current_user.hash != hash:
@@ -35,7 +37,7 @@ def get_one_user(current_user, hash):
         })
     except: return jsonify({"message": f"failed to get user with hash '{hash}'"}), 500
 
-@app.route('/user', methods=['POST'])
+@_.route('', methods=['POST'])
 def create_user():
     data = request.get_json()
     UNAME_KEY = 'username'
@@ -60,7 +62,7 @@ def create_user():
         }), 201
     except: return jsonify({ "message": f"failed to add the user '{name}' (seems like he already exists)" })
 
-@app.route('/user/<hash>', methods=['PUT'])
+@_.route('/<hash>', methods=['PUT'])
 @token_required
 def promote_user(current_user, hash):
     no_admin_resp = admin_required(current_user)
@@ -75,7 +77,7 @@ def promote_user(current_user, hash):
         return jsonify({ "message": f"promotion of user '{user.uname}' successfully done" })
     except: return jsonify({"message": f"failed to promote user with hash '{hash}'"}), 500
 
-@app.route('/user/<hash>', methods=['DELETE'])
+@_.route('/<hash>', methods=['DELETE'])
 @token_required
 def delete_user(current_user, hash):
     no_admin_resp = admin_required(current_user)

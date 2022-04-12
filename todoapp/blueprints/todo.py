@@ -1,13 +1,15 @@
-from flask import jsonify, request
+from flask import Blueprint, jsonify, request
 from uuid import uuid4
 
-from .. import app, db
+from .. import db
 
 from ..models import Todo, User
 
 from .auth import token_required, admin_required
 
-@app.route('/todo', methods=['GET'])
+_ = Blueprint('todo', __name__, url_prefix='/todo')
+
+@_.route('', methods=['GET'])
 @token_required
 def get_all_todos(current_user):
     try:
@@ -19,7 +21,7 @@ def get_all_todos(current_user):
         } for todo in todos])
     except: return jsonify({"message": f"failed to get all todos for user with hash '{hash}'"}), 500
 
-@app.route('/todo/all', methods=['GET'])
+@_.route('/all', methods=['GET'])
 @token_required
 def admin_get_all_todos(current_user):
     no_admin_resp = admin_required(current_user)
@@ -36,7 +38,7 @@ def admin_get_all_todos(current_user):
     except: return jsonify({"message": f"failed to get all todos for user with hash '{hash}'"}), 500
 
 
-@app.route('/todo/<hash>', methods=['GET'])
+@_.route('/<hash>', methods=['GET'])
 @token_required
 def get_todo(current_user, hash):
     try:
@@ -50,7 +52,7 @@ def get_todo(current_user, hash):
         })
     except: return jsonify({"message": f"failed to get todo with hash '{hash}'"}), 500
 
-@app.route('/todo', methods=['POST'])
+@_.route('', methods=['POST'])
 @token_required
 def create_todo(current_user):
     data = request.get_json()
@@ -72,7 +74,7 @@ def create_todo(current_user):
         }), 201
     except: return jsonify({ "message": f"failed to create todo '{title}' for the user" })
 
-@app.route('/todo/<hash>', methods=['PUT'])
+@_.route('/<hash>', methods=['PUT'])
 @token_required
 def complete_todo(current_user, hash):
     try:
@@ -84,7 +86,7 @@ def complete_todo(current_user, hash):
         return jsonify({"message": f"todo completed successfully"})
     except: return jsonify({"message": f"failed to complete todo with hash '{hash}'"}), 500
 
-@app.route('/todo/<hash>', methods=['DELETE'])
+@_.route('/<hash>', methods=['DELETE'])
 @token_required
 def delete_todo(current_user, hash):
     try:
